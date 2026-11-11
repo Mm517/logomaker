@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>استوديو الصور الشخصية</title>
+<link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0c0e13; --panel:#14171f; --line:#262b37; --txt:#f1ede4; --mut:#8f97a8;
+  --paper:#f3efe6; --paper-ink:#1b1b1f; --gold:#f2b134; --ok:#2fbf84; --bad:#ff5a67;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--txt);font-family:Tajawal,system-ui,sans-serif;line-height:1.75;
+  background-image:radial-gradient(900px 500px at 85% -10%,#2a2110 0,transparent 60%),radial-gradient(700px 420px at 0% 30%,#101a2b 0,transparent 60%)}
+main{max-width:980px;margin:0 auto;padding:40px 20px 80px}
+h1{font:700 clamp(34px,7vw,64px)/1.15 "Reem Kufi",serif;letter-spacing:-.5px}
+h1 small{display:block;font:500 clamp(16px,2.6vw,20px)/1.7 Tajawal;color:var(--mut);margin-top:12px;letter-spacing:0}
+h2{font:700 22px "Reem Kufi";display:flex;align-items:center;gap:12px;margin-bottom:6px}
+h2 b{margin-inline-start:auto;font:500 15px Tajawal;color:var(--mut)}
+h2 b span{color:var(--gold);font-weight:700}
+.hint{color:var(--mut);font-size:15px;margin-bottom:22px}
+section{margin-top:54px}
+
+/* ===== البولارويد ===== */
+.rack{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;padding:10px 4px}
+@media(max-width:720px){.rack{grid-template-columns:repeat(2,1fr);gap:22px 14px}}
+.frame{position:relative;background:var(--paper);color:var(--paper-ink);padding:10px 10px 44px;border-radius:4px;
+  box-shadow:0 14px 30px -12px #000c,0 2px 0 #fff3 inset;cursor:pointer;transform:rotate(var(--r,0deg));
+  transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s}
+.frame:nth-child(1){--r:-2.4deg}.frame:nth-child(2){--r:1.6deg}.frame:nth-child(3){--r:-1.2deg}.frame:nth-child(4){--r:2.2deg}
+.frame:hover,.frame.drag{transform:rotate(0) translateY(-6px) scale(1.03);box-shadow:0 22px 38px -14px #000e}
+.frame:focus-within{outline:3px solid var(--gold);outline-offset:4px}
+.frame input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:3}
+.win{position:relative;aspect-ratio:1;background:#1d2029;overflow:hidden;display:grid;place-items:center;color:#7d8597;text-align:center;font-size:13px}
+.win svg{width:34px;height:34px;display:block;margin:0 auto 6px;stroke:currentColor}
+.win img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:develop .9s ease-out both}
+@keyframes develop{from{filter:brightness(2.4) saturate(0) blur(4px);opacity:.2}to{filter:none;opacity:1}}
+.frame.empty .win{background:repeating-linear-gradient(45deg,#1d2029 0 10px,#222634 10px 20px)}
+.cap{position:absolute;inset-inline:0;bottom:10px;text-align:center;font:500 13px Tajawal;color:#55555f;padding-inline:8px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm{position:absolute;top:-9px;inset-inline-start:-9px;z-index:4;width:28px;height:28px;border-radius:50%;border:0;background:var(--ink);
+  color:var(--txt);font-size:16px;line-height:1;cursor:pointer;display:none;box-shadow:0 2px 8px #000a}
+.frame.has .rm{display:block}
+.rm:hover{background:var(--bad)}
+
+/* مسح الوش */
+.scan .win::after{content:"";position:absolute;inset-inline:0;height:38%;top:-40%;
+  background:linear-gradient(180deg,transparent,#f2b13466 60%,#f2b134cc 98%,transparent);animation:scan 1.4s ease-in-out infinite}
+@keyframes scan{to{top:105%}}
+
+/* ختم النتيجة */
+.stamp{position:absolute;z-index:2;inset-inline:8px;bottom:8px;transform:rotate(-5deg);padding:3px 8px;border:2px solid;border-radius:6px;
+  font:700 13px "Reem Kufi";text-align:center;background:#0009;backdrop-filter:blur(2px);animation:stampin .35s cubic-bezier(.3,1.6,.5,1) both}
+.stamp.ok{color:var(--ok);border-color:var(--ok)}.stamp.bad{color:var(--bad);border-color:var(--bad)}
+@keyframes stampin{from{transform:rotate(-5deg) scale(2.2);opacity:0}}
+.frame.ok{box-shadow:0 0 0 3px var(--ok),0 14px 30px -12px #000c}
+.frame.bad{box-shadow:0 0 0 3px var(--bad),0 14px 30px -12px #000c}
+
+/* ===== الوصف ===== */
+.box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+textarea{width:100%;min-height:120px;background:transparent;border:0;color:var(--txt);font:inherit;font-size:17px;resize:vertical;outline:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding-top:12px;border-top:1px dashed var(--line)}
+.chip{border:1px solid var(--line);background:transparent;color:var(--mut);padding:5px 13px;border-radius:99px;font:500 14px Tajawal;cursor:pointer;transition:.15s}
+.chip:hover{color:var(--ink);background:var(--gold);border-color:var(--gold)}
+
+/* ===== الزر والخطوات ===== */
+#go{margin-top:22px;width:100%;padding:16px;border:0;border-radius:14px;background:var(--gold);color:#1c1400;font:700 21px "Reem Kufi";cursor:pointer;
+  transition:transform .15s,filter .15s}
+#go:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.06)}
+#go:disabled{opacity:.55;cursor:not-allowed}
+.steps{display:none;margin-top:22px;gap:10px;grid-template-columns:repeat(3,1fr)}
+.steps.on{display:grid}
+.st{padding:12px;border:1px solid var(--line);border-radius:12px;color:var(--mut);font-size:14px;text-align:center;transition:.3s}
+.st.now{color:var(--txt);border-color:var(--gold);box-shadow:0 0 0 3px #f2b13422}
+.st.done{color:var(--ok);border-color:var(--ok)}
+#msg{margin-top:14px;min-height:26px;color:var(--mut);text-align:center}#msg.err{color:var(--bad)}
+
+/* ===== النتيجة ===== */
+#result{display:none;margin-top:54px;text-align:center}
+#result.on{display:block}
+.logo-card{display:inline-block;background:#fff;padding:16px;border-radius:20px;box-shadow:0 30px 60px -20px #000d,0 0 0 1px #fff2;max-width:min(100%,460px);animation:rise .8s cubic-bezier(.2,.9,.2,1) both}
+.logo-card img{display:block;width:100%;border-radius:10px}
+@keyframes rise{from{opacity:0;transform:translateY(24px) scale(.94)}}
+.acts{margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.acts a,.acts button{padding:11px 22px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--txt);font:700 16px Tajawal;text-decoration:none;cursor:pointer}
+.acts a.main{background:var(--gold);color:#1c1400;border-color:var(--gold)}
+
+/* ===== الريفرنس ===== */
+.refs{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+.ref{position:relative;width:118px;height:118px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--panel);animation:develop .7s ease-out both}
+.ref img{width:100%;height:100%;object-fit:cover;display:block}
+.ref .rm{display:block;top:6px;inset-inline-start:6px}
+.refadd{position:relative;width:118px;height:118px;border:2px dashed var(--line);border-radius:12px;display:grid;place-items:center;
+  color:var(--mut);font-size:13px;text-align:center;cursor:pointer;line-height:1.5;transition:.15s}
+.refadd:hover,.refadd.drag,.refadd:focus-within{border-color:var(--gold);color:var(--gold)}
+.refadd input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.refadd b{display:block;font-size:26px;line-height:1;font-weight:500}
+
+.consent{display:flex;gap:10px;align-items:flex-start;margin-top:18px;color:var(--mut);font-size:15px;cursor:pointer}
+.consent input{margin-top:6px;width:18px;height:18px;accent-color:var(--gold);flex:none}
+.hist{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+.hist button{width:84px;height:84px;padding:4px;border-radius:12px;border:2px solid var(--line);background:#fff;cursor:pointer}
+.hist button[aria-pressed=true]{border-color:var(--gold)}
+.hist img{width:100%;height:100%;object-fit:contain;display:block;border-radius:8px}
+.hist-t{margin-top:26px;color:var(--mut);font-size:14px}
+
+/* ===== هوية اللوجو ===== */
+.fld{display:grid;gap:8px;margin-bottom:18px}
+.fld>label,.fld>span{font:700 16px Tajawal;color:var(--txt)}
+.fld input[type=text]{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--txt);font:inherit;font-size:17px;outline:0;max-width:420px}
+.fld input[type=text]:focus{border-color:var(--gold);box-shadow:0 0 0 3px #f2b13422}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg label{position:relative;cursor:pointer}
+.seg input{position:absolute;opacity:0;inset:0}
+.seg span{display:block;padding:8px 18px;border:1px solid var(--line);border-radius:99px;color:var(--mut);font:500 15px Tajawal;transition:.15s}
+.seg input:checked+span{background:var(--gold);border-color:var(--gold);color:#1c1400;font-weight:700}
+.seg input:focus-visible+span{outline:3px solid var(--gold);outline-offset:2px}
+.pals{display:flex;gap:10px;flex-wrap:wrap}
+.pal{position:relative;cursor:pointer}
+.pal input{position:absolute;opacity:0;inset:0}
+.pal i{display:flex;width:84px;height:38px;border-radius:10px;overflow:hidden;border:2px solid var(--line);transition:.15s}
+.pal i b{flex:1}
+.pal input:checked+i{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 14px -6px #000}
+.pal input:focus-visible+i{outline:3px solid var(--gold);outline-offset:2px}
+.pal.none i{align-items:center;justify-content:center;font:500 13px Tajawal;color:var(--mut);background:transparent}
+.bgs{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
+.bgs button{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.bgs button[aria-pressed=true]{border-color:var(--gold);box-shadow:0 0 0 3px #f2b13433}
+.logo-card.b-white{background:#fff}.logo-card.b-dark{background:#15181f}.logo-card.b-gold{background:var(--gold)}
+.logo-card.b-check{background:repeating-conic-gradient(#e6e6e6 0 25%,#fff 0 50%) 0 0/20px 20px}
+.logo-card{transition:background .2s}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>استوديو الصور الشخصية<small>ارفع 4 صور ليك، اختار الستايل اللي عايزه، ونطلّعلك صورة شخصية جديدة بنفس ملامحك. بنتأكد الأول إن كل صورة فيها وش واضح.</small></h1>
+
+  <section>
+    <h2>صورك <b><span id="cnt">0</span> / 4</b></h2>
+    <p class="hint">اضغط على أي إطار أو اسحب الصور عليه. تقدر تسحب أكتر من صورة مرة واحدة.</p>
+    <div class="rack" id="rack"></div>
+  </section>
+
+  <section>
+    <h2>ريفرنس للستايل <b>اختياري · <span id="rcnt">0</span> / 3</b></h2>
+    <p class="hint">عندك صور أو تصميمات عاجباك؟ ارفعها وهنمشي على نفس روحها (الألوان والإضاءة والجو) من غير ما ننسخها.</p>
+    <div class="refs" id="refs"></div>
+  </section>
+
+  <section>
+    <h2>ستايل الصورة</h2>
+    <p class="hint">اختار الشكل اللي عايزه، والخلفية اختيارية.</p>
+    <div class="fld"><span id="kl">الستايل</span>
+      <div class="seg" role="radiogroup" aria-labelledby="kl">
+        <label><input type="radio" name="kind" value="realistic" checked><span>واقعية احترافية</span></label>
+        <label><input type="radio" name="kind" value="cartoon"><span>كارتون</span></label>
+        <label><input type="radio" name="kind" value="anime"><span>أنمي</span></label>
+        <label><input type="radio" name="kind" value="3d"><span>3D</span></label>
+        <label><input type="radio" name="kind" value="painting"><span>لوحة زيتية</span></label>
+        <label><input type="radio" name="kind" value="flat"><span>أفاتار فلات</span></label>
+      </div></div>
+    <div class="fld"><span id="pl">ألوان الخلفية</span><div class="pals" id="pals" role="radiogroup" aria-labelledby="pl"></div></div>
+  </section>
+
+  <section>
+    <h2>وصف الصورة <b>اختياري</b></h2>
+    <p class="hint">اوصف اللبس أو الجو أو التعبير اللي عايزه، أو ابدأ من الاقتراحات.</p>
+    <div class="box">
+      <textarea id="desc" placeholder="مثال: بدلة كحلي، ابتسامة هادية، إضاءة ناعمة"></textarea>
+      <div class="chips" id="chips"></div>
+    </div>
+    <label class="consent"><input type="checkbox" id="ok"><span>موافق إن صوري تتبعت لجيميناي عشان تحليل الوش وتصميم الصورة، وتتخزن بشكل خاص على السيرفر.</span></label>
+    <button id="go">اعمل صورتي</button>
+    <div class="steps" id="steps">
+      <div class="st">١. فحص الوشوش</div><div class="st">٢. تصميم الصورة</div><div class="st">٣. حفظ النتيجة</div>
+    </div>
+    <div id="msg" role="status"></div>
+  </section>
+
+  <section id="result">
+    <h2 style="justify-content:center">صورتك جاهزة</h2>
+    <div class="bgs" id="bgs" role="group" aria-label="خلفية المعاينة">
+      <button type="button" data-b="white" aria-label="خلفية بيضاء" style="background:#fff" aria-pressed="true"></button>
+      <button type="button" data-b="dark" aria-label="خلفية داكنة" style="background:#15181f"></button>
+      <button type="button" data-b="gold" aria-label="خلفية ذهبية" style="background:#f2b134"></button>
+      <button type="button" data-b="check" aria-label="خلفية مربعات" style="background:repeating-conic-gradient(#ccc 0 25%,#fff 0 50%) 0 0/10px 10px"></button>
+    </div>
+    <div class="logo-card b-white" id="lcard"><img id="logo" alt="صورتك"></div>
+    <div class="acts"><button id="dl" class="main" style="background:var(--gold);color:#1c1400;border-color:var(--gold)">تحميل PNG</button><button id="redo">نسخة تانية بنفس الصور</button><button id="again">تصميم جديد</button></div>
+    <div class="hist-t" id="histT" hidden>النسخ اللي طلعت (اضغط للمقارنة)</div><div class="hist" id="hist"></div>
+  </section>
+</main>
+
+<script>
+// مربوط بمشروع Supabase (المفتاح ده عام ومسموح يكون في الفرونت)
+const SUPABASE_URL = "https://cijujqhxdjpvuyzbxedf.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpanVqcWh4ZGpwdnV5emJ4ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3MTU3NjgsImV4cCI6MjEwODI5MTc2OH0.GEF6l_B-6xPfcoct2qE_tU_v4n4vpHtdSWyGDioc4CE";
+
+const $ = (id) => document.getElementById(id);
+const configured = !SUPABASE_URL.includes("YOUR-PROJECT") && !SUPABASE_ANON_KEY.includes("YOUR-ANON");
+const rack = $("rack"), msg = $("msg"), btn = $("go");
+const files = [null, null, null, null], frames = [];
+const camera = `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>`;
+
+/* ---- بناء الإطارات ---- */
+for (let i = 0; i < 4; i++) {
+  const f = document.createElement("div");
+  f.className = "frame empty";
+  f.innerHTML = `<div class="win">${"<div>" + camera + "صورة " + (i + 1) + "</div>"}</div><div class="cap">فاضي</div>
+    <button class="rm" type="button" aria-label="حذف الصورة">×</button><input type="file" accept="image/*" multiple aria-label="صورة ${i + 1}">`;
+  const input = f.querySelector("input");
+  input.addEventListener("change", (e) => { addFiles([...e.target.files], i); input.value = ""; });
+  f.querySelector(".rm").addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); clearSlot(i); });
+  ["dragenter", "dragover"].forEach((ev) => f.addEventListener(ev, (e) => { e.preventDefault(); f.classList.add("drag"); }));
+  ["dragleave", "drop"].forEach((ev) => f.addEventListener(ev, () => f.classList.remove("drag")));
+  f.addEventListener("drop", (e) => { e.preventDefault(); addFiles([...e.dataTransfer.files], i); });
+  rack.appendChild(f); frames.push(f);
+}
+
+function clearMarks(i) {
+  const f = frames[i];
+  f.classList.remove("ok", "bad", "scan"); f.querySelector(".stamp")?.remove();
+}
+function clearSlot(i) {
+  files[i] = null; clearMarks(i);
+  const f = frames[i];
+  f.className = "frame empty";
+  f.querySelector(".win").innerHTML = `<div>${camera}صورة ${i + 1}</div>`;
+  f.querySelector(".cap").textContent = "فاضي";
+  count();
+}
+function count() { $("cnt").textContent = files.filter(Boolean).length; }
+
+/* أول صورة تروح للإطار اللي اتضغط عليه، والباقي للإطارات الفاضية */
+async function addFiles(list, start) {
+  list = list.filter((f) => f.type.startsWith("image/"));
+  if (!list.length) return;
+  let queue = list.slice();
+  const first = queue.shift();
+  await setSlot(start, first);
+  for (const file of queue) {
+    const empty = files.findIndex((x) => !x);
+    if (empty === -1) break;
+    await setSlot(empty, file);
+  }
+}
+async function setSlot(i, file) {
+  const small = await shrink(file);
+  files[i] = small; clearMarks(i);
+  const f = frames[i];
+  f.className = "frame has";
+  f.querySelector(".win").innerHTML = `<img alt="">`;
+  f.querySelector("img").src = URL.createObjectURL(small);
+  f.querySelector(".cap").textContent = file.name.replace(/\.[^.]+$/, "");
+  count();
+}
+
+/* تصغير لـ 1024px قبل الرفع */
+function shrink(file, max = 1024) {
+  return new Promise((res) => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob((b) => res(new File([b], "p.jpg", { type: "image/jpeg" })), "image/jpeg", 0.85);
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+/* ---- الريفرنس (اختياري، لحد 3) ---- */
+let refFiles = [];
+function renderRefs() {
+  const box = $("refs"); box.innerHTML = "";
+  refFiles.forEach((f, i) => {
+    const d = document.createElement("div"); d.className = "ref";
+    d.innerHTML = `<img alt="ريفرنس ${i + 1}"><button class="rm" type="button" aria-label="حذف">×</button>`;
+    d.querySelector("img").src = URL.createObjectURL(f);
+    d.querySelector(".rm").onclick = () => { refFiles.splice(i, 1); renderRefs(); };
+    box.appendChild(d);
+  });
+  if (refFiles.length < 3) {
+    const a = document.createElement("label"); a.className = "refadd";
+    a.innerHTML = `<div><b>+</b>أضف ريفرنس</div><input type="file" accept="image/*" multiple>`;
+    a.querySelector("input").onchange = (e) => { addRefs([...e.target.files]); e.target.value = ""; };
+    ["dragenter", "dragover"].forEach((ev) => a.addEventListener(ev, (e) => { e.preventDefault(); a.classList.add("drag"); }));
+    ["dragleave", "drop"].forEach((ev) => a.addEventListener(ev, () => a.classList.remove("drag")));
+    a.addEventListener("drop", (e) => { e.preventDefault(); addRefs([...e.dataTransfer.files]); });
+    box.appendChild(a);
+  }
+  $("rcnt").textContent = refFiles.length;
+}
+async function addRefs(list) {
+  for (const f of list.filter((x) => x.type.startsWith("image/"))) {
+    if (refFiles.length >= 3) break;
+    refFiles.push(await shrink(f));
+  }
+  renderRefs();
+}
+renderRefs();
+
+/* ---- اقتراحات ---- */
+["بدلة رسمية", "ابتسامة طبيعية", "إضاءة سينمائية", "خلفية سادة", "لبس كاجوال", "لقطة نص جسم"].forEach((t) => {
+  const c = document.createElement("button");
+  c.type = "button"; c.className = "chip"; c.textContent = "+ " + t;
+  c.onclick = () => { const d = $("desc"); d.value = (d.value.trim() ? d.value.trim() + "، " : "") + t; d.focus(); };
+  $("chips").appendChild(c);
+});
+
+/* ---- الحالة ---- */
+const say = (t, err) => { msg.textContent = t; msg.className = err ? "err" : ""; };
+const stepEls = [...document.querySelectorAll(".st")];
+let timers = [];
+function setStep(n) { stepEls.forEach((s, i) => s.className = "st" + (i < n ? " done" : i === n ? " now" : "")); }
+function startProgress() {
+  $("steps").classList.add("on"); setStep(0);
+  timers = [setTimeout(() => setStep(1), 4500), setTimeout(() => setStep(2), 22000)];
+}
+function stopProgress(finished) {
+  timers.forEach(clearTimeout);
+  if (finished) setStep(3); else $("steps").classList.remove("on");
+}
+
+function mark(results) {
+  results.forEach((r) => {
+    const f = frames[r.index - 1];
+    f.classList.remove("scan"); f.classList.add(r.ok ? "ok" : "bad");
+    const s = document.createElement("div");
+    s.className = "stamp " + (r.ok ? "ok" : "bad");
+    s.textContent = r.ok ? "وش واضح ✓" : (r.reason || "مفيش وش واضح");
+    f.querySelector(".win").appendChild(s);
+  });
+}
+
+/* ---- النتيجة والسجل ---- */
+const history = [];
+function show(i) {
+  const h = history[i];
+  $("logo").src = h.url; $("result").classList.add("on");
+  [...$("hist").children].forEach((b, k) => b.setAttribute("aria-pressed", k === i));
+  $("histT").hidden = history.length < 2; $("hist").hidden = history.length < 2;
+  window.currentLogo = h;
+}
+function pushResult(url) {
+  history.push({ url });
+  const b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-label", "نسخة " + history.length);
+  const n = history.length - 1; b.innerHTML = `<img alt="">`; b.firstChild.src = url; b.onclick = () => show(n);
+  $("hist").appendChild(b); show(n);
+}
+$("dl").onclick = async () => {
+  const url = window.currentLogo?.url; if (!url) return;
+  try {
+    const blob = await (await fetch(url)).blob();
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "portrait.png"; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  } catch { window.open(url, "_blank"); }
+};
+
+/* ---- الألوان وخلفية المعاينة ---- */
+const PALS = [["#0b1f3a", "#f2b134", "#f1ede4"], ["#1b4332", "#95d5b2", "#f1faee"], ["#7b2cbf", "#ff9e00", "#ffffff"], ["#d00000", "#111111", "#ffffff"], ["#0077b6", "#90e0ef", "#ffffff"], ["#111111", "#ffffff", "#9a9a9a"]];
+$("pals").innerHTML = `<label class="pal none"><input type="radio" name="pal" value="" checked><i>أي ألوان</i></label>` +
+  PALS.map((p) => `<label class="pal"><input type="radio" name="pal" value="${p.join(",")}" aria-label="لوحة ${p.join(" ")}"><i>${p.map((c) => `<b style="background:${c}"></b>`).join("")}</i></label>`).join("");
+$("bgs").onclick = (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  $("lcard").className = "logo-card b-" + b.dataset.b;
+  [...$("bgs").children].forEach((x) => x.setAttribute("aria-pressed", x === b));
+};
+
+/* ---- الإرسال ---- */
+let busy = false;
+async function generate() {
+  if (busy) return;
+  const desc = $("desc").value.trim();
+  if (!configured) return say("حط SUPABASE_URL و SUPABASE_ANON_KEY في أول الـ script الأول.", true);
+  if (files.some((f) => !f)) return say("ارفع الأربع صور الأول.", true);
+  if (!$("ok").checked) return say("لازم توافق على استخدام الصور الأول.", true);
+
+  files.forEach((_, i) => { clearMarks(i); frames[i].classList.add("scan"); });
+  const fd = new FormData();
+  files.forEach((f) => fd.append("photos", f));
+  refFiles.forEach((f) => fd.append("references", f));
+  fd.append("description", desc);
+  fd.append("kind", document.querySelector("[name=kind]:checked").value);
+  fd.append("colors", document.querySelector("[name=pal]:checked").value);
+
+  busy = true; btn.disabled = true; $("redo").disabled = true; say("ثواني... بنحلل الصور ونصمم صورتك"); startProgress();
+  try {
+    const r = await fetch(`${SUPABASE_URL}/functions/v1/logo-maker`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+      body: fd,
+    });
+    const d = await r.json().catch(() => ({}));
+    frames.forEach((f) => f.classList.remove("scan"));
+    if (d.results) mark(d.results);
+    if (!r.ok) { stopProgress(false); return say((d.error || "حصل خطأ") + (d.detail ? " — " + d.detail : ""), true); }
+    stopProgress(true); say("");
+    pushResult(d.logo_url);
+    $("result").scrollIntoView({ behavior: "smooth", block: "center" });
+  } catch (e) {
+    frames.forEach((f) => f.classList.remove("scan"));
+    stopProgress(false); say("مشكلة في الاتصال بالسيرفر.", true);
+  } finally { busy = false; btn.disabled = false; $("redo").disabled = false; }
+}
+btn.onclick = generate;
+$("redo").onclick = generate;
+
+$("again").onclick = () => {
+  files.forEach((_, i) => clearSlot(i));
+  refFiles = []; renderRefs(); history.length = 0; $("hist").innerHTML = ""; window.currentLogo = null;
+  $("desc").value = ""; $("result").classList.remove("on"); $("steps").classList.remove("on"); say("");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+</script>
+</body>
+</html>
