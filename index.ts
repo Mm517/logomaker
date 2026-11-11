@@ -33,27 +33,36 @@ async function gemini(model: string, body: unknown) {
     });
     if (r.ok) return r.json();
     const t = (await r.text()).slice(0, 400);
-    if ((r.status === 429 || r.status >= 500) && attempt === 0) { await new Promise((ok) => setTimeout(ok, 2000)); continue; }
+    if ((r.status === 429 || r.status >= 500) && attempt === 0) {
+      const m = t.match(/retry in ([\d.]+)s/i) ?? t.match(/"retryDelay":\s*"(\d+)s"/);
+      const wait = Math.min(45, m ? Math.ceil(Number(m[1])) + 1 : 3);
+      await new Promise((ok) => setTimeout(ok, wait * 1000));
+      continue;
+    }
     if (r.status === 400 && /API key/i.test(t)) throw new Fail(500, "مفتاح GEMINI_API_KEY غلط أو منتهي.", t);
     if (r.status === 403) throw new Fail(500, "مفتاح جيميناي مش مسموح له بالموديل ده.", t);
     if (r.status === 404) throw new Fail(500, `الموديل ${model} مش موجود. غيّر GEMINI_IMAGE_MODEL / GEMINI_TEXT_MODEL.`, t);
-    if (r.status === 429) throw new Fail(429, "رصيد جيميناي خلص أو الطلبات كتير. جرّب بعد شوية.", t);
+    if (r.status === 429) throw new Fail(429, "وصلت لحد طلبات جيميناي (النسخة المجانية 5 في الدقيقة). استنى دقيقة وجرّب تاني.", t);
     throw new Fail(502, "جيميناي رجّع خطأ.", `${r.status}: ${t}`);
   }
 }
 
-async function checkFace(b64: string, mime: string) {
+// طلب واحد بس لكل الصور الأربعة (عشان حد 5 طلبات/دقيقة في النسخة المجانية)
+async function checkFaces(b64s: string[], mimes: string[]) {
+  const parts: unknown[] = [];
+  b64s.forEach((d, i) => {
+    parts.push({ text: `Photo ${i + 1}:` }, { inlineData: { mimeType: mimes[i], data: d } });
+  });
+  parts.push({ text: "For each photo, is there a real, clearly visible human face (not a drawing, cartoon, or object)? " +
+    "Return JSON only, an array with one item per photo in order: [{\"has_face\": boolean, \"face_count\": number, \"reason\": \"short reason in Egyptian Arabic\"}]" });
   const res = await gemini(TEXT_MODEL, {
-    contents: [{ parts: [
-      { inlineData: { mimeType: mime, data: b64 } },
-      { text: "Is there a real, clearly visible human face in this photo (not a drawing, cartoon, or object)? " +
-          "Return JSON only: {\"has_face\": boolean, \"face_count\": number, \"reason\": \"short reason in Egyptian Arabic\"}" },
-    ] }],
+    contents: [{ parts }],
     generationConfig: { responseMimeType: "application/json", temperature: 0 },
   });
-  const txt = res.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
-  try { return JSON.parse(txt) as { has_face: boolean; face_count: number; reason: string }; }
-  catch { return { has_face: false, face_count: 0, reason: "مقدرناش نقرا الصورة، جرّب صورة تانية" }; }
+  const txt = res.candidates?.[0]?.content?.parts?.[0]?.text ?? "[]";
+  let arr: any[] = [];
+  try { arr = JSON.parse(txt); } catch { /* ignore */ }
+  return b64s.map((_, i) => arr[i] ?? { has_face: false, face_count: 0, reason: "مقدرناش نقرا الصورة، جرّب صورة تانية" });
 }
 
 const STYLES: Record<string, string> = {
@@ -91,7 +100,7 @@ Deno.serve(async (req) => {
     const refB64s = refBuffers.map(toB64);
 
     // 1) فحص الوشوش
-    const checks = await Promise.all(files.map((f, i) => checkFace(b64s[i], f.type || "image/jpeg")));
+    const checks = await checkFaces(b64s, files.map((f) => f.type || "image/jpeg"));
     const results = checks.map((c, i) => ({ index: i + 1, ok: c.has_face === true && c.face_count === 1, face_count: c.face_count, reason: c.reason }));
     if (results.some((r) => !r.ok)) return json({ error: "في صور مفيهاش وش واضح لشخص واحد.", results }, 422);
 
